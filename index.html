@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stoelgang check | YouTime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Mulish:wght@400;600;700&family=Alex+Brush&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7eee1;--card:#ffffff;--ink:#0c0c0c;--mute:#5b5348;--green:#3e642c;--orange:#e4831c;--rose:#b5485d;--gold:#c9a464;--line:#e6d9c3;--on:#ffffff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14110d;--card:#1e1a14;--ink:#f7eee1;--mute:#b9ad9a;--green:#8fbf74;--line:#3a3226;--on:#0c0c0c}}
+:root[data-theme="dark"]{--bg:#14110d;--card:#1e1a14;--ink:#f7eee1;--mute:#b9ad9a;--green:#8fbf74;--line:#3a3226;--on:#0c0c0c}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Mulish,system-ui,sans-serif;font-size:16px;line-height:1.55;text-align:left}
+main{max-width:520px;margin:0 auto;padding:28px 20px 48px}
+h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;line-height:1.2;margin:0 0 12px}
+h1{font-size:34px}
+h2{font-size:26px}
+p{margin:0 0 14px}
+.mute{color:var(--mute)}
+.bar{height:6px;background:var(--line);border-radius:6px;margin:0 0 8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);transition:width .3s}
+.step{font-size:14px;color:var(--mute);margin-bottom:22px}
+.opt{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;margin:0 0 10px;cursor:pointer;min-height:52px}
+.opt:hover,.opt:focus-visible{border-color:var(--gold);outline:none}
+.opt:focus-visible{box-shadow:0 0 0 3px var(--gold)}
+.btn{display:inline-block;width:100%;text-align:center;font:inherit;font-weight:700;text-decoration:none;background:var(--green);color:var(--on);border:0;border-radius:999px;padding:16px 20px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
+.back{background:none;border:0;font:inherit;color:var(--mute);padding:6px 0;margin:0 0 14px;cursor:pointer}
+.verdict{border-left:6px solid var(--c);padding:6px 0 6px 16px;margin:0 0 22px}
+.rows{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:6px 16px;margin:0 0 22px}
+.row{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.dot{flex:none;width:12px;height:12px;border-radius:50%;margin-top:7px}
+.row b{display:block;font-size:14px;color:var(--mute);font-weight:600}
+input{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin:6px 0 14px}
+.note{font-size:14px;color:var(--mute);margin-top:22px}
+.sig{font-family:"Alex Brush",cursive;font-size:30px;color:var(--green);margin-top:18px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+var NR="32476567943";
+var C={g:"#3e642c",o:"#e4831c",r:"#b5485d"};
+var Q=[
+{k:"Frequentie",q:"Hoe vaak ga je naar het toilet voor een grote boodschap?",o:[["1 tot 3 keer per dag","g"],["Om de dag, of meer dan 3 keer per dag","o"],["Minder dan 3 keer per week, of je moet veel persen","r"]]},
+{k:"Vorm",q:"Welk type lijkt het meest op jouw stoelgang?",o:[["Type 1: harde keuteltjes","r"],["Type 2: worstvormig, maar klonterig","r"],["Type 3: worst met barstjes","o"],["Type 4: glad en zacht worstje","g"],["Type 5: zachte stukjes met duidelijke randen","o"],["Type 6: papperig, rafelige stukjes","r"],["Type 7: waterig, geen vaste stukjes","r"]]},
+{k:"Vegen",q:"Hoeveel velletjes heb je nodig om schoon te zijn?",o:[["1 of 2 velletjes","g"],["3 of 4 velletjes","o"],["Meer dan 4, of het is plakkerig","r"]]},
+{k:"Zinken of drijven",q:"Wat doet het in het water?",o:[["Het zinkt of duikt in zijn geheel onder","g"],["Het drijft af en toe","o"],["Het blijft drijven, ziet er vettig uit of spoelt moeilijk door","r"]]}
+];
+var V={
+g:{t:"Je darmen doen hun werk",b:"Je stoelgang ziet er goed uit. Hier bouwen we verder op."},
+o:{t:"Er is ruimte om te verbeteren",b:"Je stoelgang geeft een paar signalen. Dit is een goed startpunt voor je begeleiding."},
+r:{t:"Hier starten we mee",b:"Je stoelgang vraagt aandacht. Dat is geen oordeel, het is een startpunt. We bekijken het samen."}
+};
+var step=0,ans=[],app=document.getElementById("app");
+function show(){step<Q.length?ask():done()}
+function ask(){
+var q=Q[step],h='<div class="bar"><i style="width:'+(step/Q.length*100)+'%"></i></div><div class="step">Vraag '+(step+1)+' van '+Q.length+'</div>';
+if(step>0)h+='<button class="back" id="bk">Terug</button>';
+h+='<h2>'+q.q+'</h2>';
+q.o.forEach(function(o,i){h+='<button class="opt" data-i="'+i+'">'+o[0]+'</button>'});
+app.innerHTML=h;
+app.querySelectorAll(".opt").forEach(function(b){b.onclick=function(){ans[step]=Q[step].o[+b.dataset.i];step++;show();window.scrollTo(0,0)}});
+var bk=document.getElementById("bk");if(bk)bk.onclick=function(){step--;show()};
+}
+function verdict(){
+var r=ans.filter(function(a){return a[1]=="r"}).length,o=ans.filter(function(a){return a[1]=="o"}).length;
+return r>0?"r":(o>=2?"o":"g");
+}
+function msg(name){
+var v=verdict(),m="Hey Joyce, hier is mijn stoelgangcheck"+(name?" ("+name+")":"")+".\n\nResultaat: "+V[v].t+"\n";
+Q.forEach(function(q,i){m+="\n- "+q.k+": "+ans[i][0]});
+return m;
+}
+function done(){
+var v=verdict(),h='<div class="bar"><i style="width:100%"></i></div><div class="step">Klaar</div>';
+h+='<div class="verdict" style="--c:'+C[v]+'"><h2>'+V[v].t+'</h2><p>'+V[v].b+'</p></div><div class="rows">';
+Q.forEach(function(q,i){h+='<div class="row"><span class="dot" style="background:'+C[ans[i][1]]+'"></span><div><b>'+q.k+'</b>'+ans[i][0]+'</div></div>'});
+h+='</div><label for="nm" class="mute">Je voornaam</label><input id="nm" type="text" autocomplete="given-name" placeholder="Bijvoorbeeld Sofie">';
+h+='<a class="btn" id="wa" target="_blank" rel="noopener">Stuur mijn score naar Joyce</a><button class="btn ghost" id="re">Opnieuw invullen</button>';
+h+='<p class="note">Bloed in je stoelgang, zwarte stoelgang of een plotse verandering die blijft duren? Ga naar je huisarts. Deze check is een startpunt, geen diagnose.</p><div class="sig">Liefs Joyce🌿</div>';
+app.innerHTML=h;
+var nm=document.getElementById("nm"),wa=document.getElementById("wa");
+function up(){wa.href="https://wa.me/"+NR+"?text="+encodeURIComponent(msg(nm.value.trim()))}
+nm.oninput=up;up();
+document.getElementById("re").onclick=function(){step=0;ans=[];show();window.scrollTo(0,0)};
+}
+function start(){
+app.innerHTML='<h1>Hoe gaat jouw stoelgang?</h1><p class="mute">4 korte vragen over je darmen. Je krijgt meteen je score en kan die met één tik naar Joyce sturen.</p><button class="btn" id="go">Start de check</button>';
+document.getElementById("go").onclick=function(){step=0;ans=[];show()};
+}
+start();
+</script>
+</body>
+</html>
